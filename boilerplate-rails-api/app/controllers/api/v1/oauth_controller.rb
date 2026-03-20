@@ -16,14 +16,11 @@ module Api
           super_admin: user.super_admin,
           permissions: permissions
         )
-        refresh_result = Auth::Interactors::RefreshToken.new.call(
-          user_id: user.id,
-          raw_refresh_token: issue_initial_refresh_token_for(user.id)
-        )
+        raw_refresh_token = issue_initial_refresh_token_for(user.id)
 
         redirect_to_frontend_with_tokens(
           access_token: access_token,
-          refresh_token: refresh_result[:refresh_token]
+          refresh_token: raw_refresh_token
         )
       rescue Auth::Errors::InvalidEmail
         redirect_to_frontend_with_error("invalid_email")
@@ -54,13 +51,17 @@ module Api
 
       def redirect_to_frontend_with_tokens(access_token:, refresh_token:)
         frontend_url = ENV.fetch("FRONTEND_URL", "http://localhost:5173")
-        redirect_to "#{frontend_url}/auth/callback?access_token=#{access_token}&refresh_token=#{refresh_token}",
+        callback_base = "#{frontend_url}/auth/callback"
+        fragment = "access_token=#{ERB::Util.url_encode(access_token)}&refresh_token=#{ERB::Util.url_encode(refresh_token)}"
+        redirect_to "#{callback_base}##{fragment}",
                     allow_other_host: true
       end
 
       def redirect_to_frontend_with_error(error_code)
         frontend_url = ENV.fetch("FRONTEND_URL", "http://localhost:5173")
-        redirect_to "#{frontend_url}/auth/callback?error=#{error_code}",
+        callback_base = "#{frontend_url}/auth/callback"
+        safe_error = ERB::Util.url_encode(error_code.to_s)
+        redirect_to "#{callback_base}#error=#{safe_error}",
                     allow_other_host: true
       end
     end

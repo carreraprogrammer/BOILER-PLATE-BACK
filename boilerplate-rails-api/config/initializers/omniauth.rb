@@ -1,5 +1,5 @@
 Rails.application.config.middleware.use ActionDispatch::Cookies
-Rails.application.config.middleware.use ActionDispatch::Session::CookieStore, key: "_oauth_session"
+Rails.application.config.middleware.use ActionDispatch::Session::CookieStore, key: "_oauth_session", secure: Rails.env.production?, httponly: true, same_site: :lax
 
 OmniAuth.config.logger = Rails.logger
 

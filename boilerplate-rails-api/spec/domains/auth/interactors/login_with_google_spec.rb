@@ -16,7 +16,7 @@ RSpec.describe Auth::Interactors::LoginWithGoogle do
   end
 
   describe '#call' do
-    it 'crea o encuentra el usuario con los datos de Google' do
+    it 'finds or creates the user with Google data' do
       user = build(:user, google_uid: 'google-uid-123')
       allow(user_repo).to receive(:find_or_create_from_google).and_return(user)
 
@@ -31,14 +31,14 @@ RSpec.describe Auth::Interactors::LoginWithGoogle do
       )
     end
 
-    it 'lanza Auth::Errors::InvalidEmail si Google no provee email' do
-      auth_hash_sin_email = OmniAuth::AuthHash.new({
+    it 'raises Auth::Errors::InvalidEmail when Google does not provide an email' do
+      auth_hash_without_email = OmniAuth::AuthHash.new({
         uid: 'google-uid-123',
         info: { email: nil, name: 'Test', image: nil }
       })
 
       expect {
-        interactor.call(auth_hash: auth_hash_sin_email)
+        interactor.call(auth_hash: auth_hash_without_email)
       }.to raise_error(Auth::Errors::InvalidEmail)
     end
   end
